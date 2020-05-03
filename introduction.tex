@@ -1,47 +1,40 @@
 \chapter{Introduction}
 \label{c:intro}
 
-Attention plays an important role in human vision. For example, when
-we look at an image, our eye movements comprise a succession of {\em
-fixations} (repetitive positioning of eyes to parts of the image)
-and {\em saccades} (rapid eye jump). Those parts of the image that
-cause eye fixations and capture primary attention are called {\em
-regions of interest} (ROIs). Studies in visual attention and eye
-movement have shown that humans generally only attend to a few ROIs.
-Detecting these visually attentive regions in images is challenging
-but useful in many multimedia applications, such as automatic
-thumbnail cropping, object recognition, content-based image
-retrieval, adaptive image compression and automatic browsing in
-small-screen devices.
+2008 年，中本聰發佈了比特幣的白皮書~\cite{nakamoto2019bitcoin}，
+這是一個以區塊鏈為根本的新型虛擬貨幣系統，
+這個系統中的每個節點都會保留一個完整的賬本，
+如此確實使得該系統的去中心化程度達到相當高的程度，
+但不可磨滅的賬本資訊也導致每個節點所需要的儲存空間逐年增加。
 
-Many algorithms have been proposed for automatic ROI detection in
-images. Unfortunately, these methods were often evaluated only on
-specific and small data sets that are not publicly available. The
-lack of published {\em benchmarks} makes experiments non-repeatable
-and quantitative evaluation difficult. However, as recommended by
-the latest ACM SIGMM retreat, repeatable experiments using published
-benchmarks are important for advancing the multimedia research
-field~\cite{Rowe:2005:ASR}.
+在十多年後的現在，人們需要上百 GB 的硬碟空間，
+才能夠運行最為知名的虛擬貨幣系統比特幣、以太坊~\cite{wood2014ethereum}的一個節點，
+這使得部分由私人維護的節點逐漸不堪負荷。
+若退而求其次，僅儲存驗證新區塊所需的資訊，
+亦即比特幣中的 UTXO 、以太坊中的世界狀態，
+也需要數 GB 到數十 GB 的硬碟空間，
+不止是在空間上會對對硬碟的有所要求，速度上也是，
+傳統硬碟的隨機存取太慢，驗證以太坊區塊的速度已經跟不上共識生成區塊的速度，
+如此迫使以太坊節點的維護者必須購買較為昂貴的固態硬碟，
+進一步提高了節點的運行成本。
 
-\begin{figure}
-\centering
-\includegraphics[width=0.45\textwidth]{kl}
-\caption{kl-distance}
-\label{kl}
-\end{figure}
+為此，虛擬貨幣的社群開始嘗試提出一些解決方案，無狀態區塊鏈就是其一。
+無狀態區塊鏈僅要求每個節點儲存區塊頭，但每一筆交易必須附帶合法性證明，
+如此大幅降低了空間需求，並且無需在硬碟查找過去狀態就能夠驗證交易合法性。
 
-\begin{table}[t]
-\begin{center}
-\begin{tabular}{lcc}
+本研究嘗試進一步優化無狀態區塊鏈，
+我們讓無狀態區塊鏈的節點有共識的維護快取，
+若一筆交易的付款人曾在最近的其他交易中出現過，
+就有機會從快取中推知此交易仍然是合法的，
+此時便可以在交易中省略合法性證明，進而降低了交易的大小，
+也減少廣播時所需要的網路流量。
 
-\hline
-                    &  {\small Itti's method}     & {\small Fuzzy growing}    \\
-\hline
-{\small Precision}           &  0.4475    & 0.4506 \\
-{\small Recall}              &  0.5515    & 0.5542 \\
-\hline
+但是，如何高效的維護快取成了新的問題。每一筆區塊接上區塊鏈時，
+都會有一個對應的快取，而臨近區塊上的快取很可能有所重疊，
+我們分別為不同的快取策略，最近 k 塊、 LRU ，
+設計了持久化的資料結構，並且進行實驗考察了它們的性能。
 
-\end{tabular}
-\caption[Evaluation of FOA sets]{\small Evaluation of FOA sets. } \label{t:FOA}
-\end{center}
-\end{table}
+論文的其餘章節依序如下：第二章講述相關研究，
+第三章說明背景以及基礎知識，第四章開始說明淺狀態區塊鏈的設計，
+包含快取的策略以及快取使用的資料結構，第五章為實驗的設計與結果，
+第六章為未來展望，第七章為總結。

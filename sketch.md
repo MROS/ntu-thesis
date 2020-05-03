@@ -3,25 +3,24 @@
 ## 大綱
 
 - 介紹
+- 相關研究
+    - merkle forest
+    - edrax
 - 背景
-    - 區塊鏈
     - 無狀態區塊鏈
-        - accumulator
-        - vector commitment
-- 系統設計
+    - accumulator
+    - vector commitment
     - 狀態的區域性（ locality ）
+- 系統設計
     - 淺狀態區塊鏈
-- 快取算法
-    - 最近 k 塊
-    - LRU k 個帳號
-- 持久化算法
-    - 胖節點
-    - DSST
-    - 順序樹
+    - 快取算法
+        - 最近 k 塊
+        - LRU k 個帳號
+    - 持久化 LRU 算法
+        - 紅黑樹
+        - 順序樹
 - 實驗設計
-    - 挑選 accumultor/vector commitment 算法
-    - 挑選快取算法
-    - 挑選持久化算法
-    - 比較驗證區塊鏈的速度
-- 實驗結果
+    - 紅黑樹／順序樹的插入、讀取速度比較
+    - 驗證不同分支度的區塊的速度比較
+- future work
 - 結論
