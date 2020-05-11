@@ -11,7 +11,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Conference Paper Title*\\
+\title{The Design of Shallow State Blockchain*\\
 {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
 should not be used}
 \thanks{Identify applicable funding agency here. If none, delete this.}
@@ -34,41 +34,32 @@ email address or ORCID}
 \textit{name of organization (of Aff.)}\\
 City, Country \\
 email address or ORCID}
-\and
-\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
 }
 
 \maketitle
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+Cryptocurrency based on blockchain is a peer to peer trading system. In this decentralized system, each node maintain a complete ledger which records entire transaction history of all account. The system has the characteristics that it is very hard to tamper with the data. However, such characteristic only makes the data increase but do not decrease. Years after years, requirement to single node will get higher and higher. Once some entities get overwhelmed, the degree of centralization of this blockchain system will gradually rise.
+
+Dealing with the issue, stateless blockchain is a promising approach. To be more specific, in this system, each transaction is attached with proof of validity. With this approach, there is no need for a node to access the disk to search past information of the ledger. Instead, node only verifies the proof attached to each transaction. Therefore, it will significantly reduce the space of data storage for each node.
+
+In this paper, we will discuss the following two points.
+First, it only need to cache part of information instead of attaching proof to each transaction. It is highly possible to infer the validity of a transaction from other valid transaction appearing recently. Second, when blockchain forks, it have to go back to the bifurcation point and create new cache of new blocks. To reach the purpose, we propose an immutable data structure so that cache can be rapidly computed under any situation. Finally, we conduct the experiments with different workload to understand the performance of different cache strategies and data structures.
 \end{abstract}
 
 \begin{IEEEkeywords}
-component, formatting, style, styling, insert
+blockchain, stateless blockchain, data structure
 \end{IEEEkeywords}
 
 \section{Introduction}
-This document is a model and instructions for \LaTeX.
-Please observe the conference page limits. 
+In 2008, Satoshi Nakamoto proposed the white paper of bitcoin. It is a new type of cryptocurrency system based on blockchain. In this system, each node maintain a complete ledger in order to attain the high degree of decentralization of entire system. However, as the data size of ledger got bigger and bigger, storage space of node increased yearly. Ten years later, it costs hundreds of GB storage space for a node to run some well-known cryptocurrency system, such as Bitcoin and Ethereum. Thus, it gradually make the nodes maintained by person overload. If we settle for second best by saving the information needed for verifying new block, such as UTXO in Bitcoin and world state in Ethereum, it still needs several or tens of GB for disk storage place. With this method, not only the storage space of disk is requested but also  I/O speed. Furthermore, it is too slow for traditional disk to access randomly. The speed of verifying a block on Ethereum can't keep up with the generation speed of blocks. It force the node maintainer on Ethereum to buy expensive solid-state disk, and it further cause the increase in operation cost of node.
+
+To deal with the problem above, cryptocurrency communities start trying several solutions, and stateless blockchain is prospective one of them. It only need to store block header for each node on stateless blockchain. Nevertheless, each transaction must be attached with proof of validity. This approach significantly reduces the requirement of storage space. Furthermore, it is no need to search the validity of transaction on disk; namely, it drastically reduces the I/O time.
+
+This paper proposes an imrpovement to stateless blockchain. We let the node on stateless blockchain reach a consensus to maintain a cache. If the payer of transaction appears in recent transaction, it is highly possible to infer the validity from cache. Hence, due to the omission of proof of validity, it reduces the size of transaction and the Internet traffic while broadcasting. However, how to maintain cache effectively becomes a new problem. When a new block append to the blockchain, there will be a correspondent cache. Nevertheless, there will also exist overlap on the blocks nearby. Therefore, we design persisted data structure for different cache strategies, such as the nearest k blocks and LRU, and we conduct an experiment to test their performance.
+
+The remaining sections are arranged as follows. Section II narratives some related works, whereas section III describes the background of this paper and preliminary knowledge; section IV illuminates the design of stateless blockchain, including cache strategies and data structures used by cache; section V shows the design and results of experiment; section VI discusses future extensions to stateless blockchain, and concluding remarks are found in section VII.
+
 
 \section{Ease of Use}
 
