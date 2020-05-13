@@ -39,12 +39,25 @@ email address or ORCID}
 \maketitle
 
 \begin{abstract}
-Cryptocurrency based on blockchain is a peer to peer trading system. In this decentralized system, each node maintain a complete ledger which records entire transaction history of all account. The system has the characteristics that it is very hard to tamper with the data. However, such characteristic only makes the data increase but do not decrease. Years after years, requirement to single node will get higher and higher. Once some entities get overwhelmed, the degree of centralization of this blockchain system will gradually rise.
+Cryptocurrency based on blockchain is a peer to peer trading system.
+In this decentralized system, each node maintain a complete ledger which records entire transaction history of all account.
+The system has the characteristics that it is very hard to tamper with the data.
+However, such characteristic only makes the data increase but do not decrease.
+Years after years, requirement to single node will get higher and higher.
+Once some entities get overwhelmed, the degree of centralization of this blockchain system will gradually rise
 
-Dealing with the issue, stateless blockchain is a promising approach. To be more specific, in this system, each transaction is attached with proof of validity. With this approach, there is no need for a node to access the disk to search past information of the ledger. Instead, node only verifies the proof attached to each transaction. Therefore, it will significantly reduce the space of data storage for each node.
+Dealing with the issue, stateless blockchain is a promising approach.
+To be more specific, in this system, each transaction is attached with proof of validity.
+With this approach, there is no need for a node to access the disk to search past information of the ledger.
+Instead, node only verifies the proof attached to each transaction.
+Therefore, it will significantly reduce the space of data storage for each node.
 
 In this paper, we will discuss the following two points.
-First, it only need to cache part of information instead of attaching proof to each transaction. It is highly possible to infer the validity of a transaction from other valid transaction appearing recently. Second, when blockchain forks, it have to go back to the bifurcation point and create new cache of new blocks. To reach the purpose, we propose an immutable data structure so that cache can be rapidly computed under any situation. Finally, we conduct the experiments with different workload to understand the performance of different cache strategies and data structures.
+First, it only need to cache part of information instead of attaching proof to each transaction.
+It is highly possible to infer the validity of a transaction from other valid transaction appearing recently.
+Second, when blockchain forks, it have to go back to the bifurcation point and create new cache of new blocks.
+To reach the purpose, we propose an immutable data structure so that cache can be rapidly computed under any situation.
+Finally, we conduct the experiments with different workload to understand the performance of different cache strategies and data structures
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -61,7 +74,32 @@ This paper proposes an imrpovement to stateless blockchain. We let the node on s
 The remaining sections are arranged as follows. Section II narratives some related works, whereas section III describes the background of this paper and preliminary knowledge; section IV illuminates the design of stateless blockchain, including cache strategies and data structures used by cache; section V shows the design and results of experiment; section VI discusses future extensions to stateless blockchain, and concluding remarks are found in section VII.
 
 
-\section{Ease of Use}
+\section{design}
+In order to reduce occupied space of the disk, it is necessary for a stateless blockchain to attach a proof to each transaction. However, this move will increase Internet traffic. Furthermore, to reduce the time of accessing disk, it will cost computational power for CPU to verify the proof.
+Compared to normal blockchain, stateless blockchain made some trade-offs. Regarding the purpose of shallow-state blockchain, the trade-offs are no longer all or nothing, which means that all transactions are attached with proofs or none of transactions are attached with proofs. It makes the degree of state storage adjustable.
+
+\subsection{shallow-state blockchain}
+In stateless blockchain, if payers and payees in some transactions are the same, the proofs in these transactions will be identical. It is obvious that the same proofs can be omitted in a block. Extended by this idea, if we cache the accounts’ information appearing in recent transactions, there is no need to verify the proof again when the accounts make transactions. To go a step further, if nodes on the Internet follow the same set of rules to record cache, it will reach a consensus that node knows whether to attach the proof. While broadcasting the block, nodes can get rid of unnecessary proofs, and then reduce internet traffic.
+
+\subsection{cache design}
+The problems mentioned above can be avoided by a simple design principle. Namely, each block has its own cache, and the content of cache depends on which chain the block is situated. Therefore, we turn a tree structure into a list, and it is definitely identical for the block on different nodes. If every node uses the same deterministic algorithm to compute the cache from this list, it can ensure that every node gets identical results of cache after verifying the same block.
+
+\subsection{persistent cache}
+In this part, we take another approach: every block retains its own cache. When a new block is about to append to the chain, it can directly use the cache of the previous block. Thus, there is no need to compute cache again. In other words, we adopt fully persistent data structure to store cache. Everytime the chain gets a new block, it creates a new version of cache.
+In this method, we have to delete the cache of older blocks, such as the block 20 blocks far from the newest one, in order to limit the size of cache to a certain range. Otherwise, it will run out of memory, and it will violate our design principle.
+Adopting this method leads to a new problem. If we duplicate the cache of the previous block, the space of cache will be proportional to the cache numbers that we didn’t delete. However, there is a high similarity of the cache in adjacent blocks. If we use appropriate data structure to have the cache shared by adjacent blocks, it will effectively increase space usage.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics{../images/LRU.png}}
+\caption{Example of a figure caption.}
+\label{fig}
+\end{figure}
+
+% \begin{figure}[htbp]
+% \centerline{\includegraphics{../images/不可變紅黑樹.png}}
+% \caption{Example of a figure caption.}
+% \label{fig}
+% \end{figure}
 
 \subsection{Maintaining the Integrity of the Specifications}
 
