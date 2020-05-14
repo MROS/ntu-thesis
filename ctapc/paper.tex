@@ -89,17 +89,46 @@ In this part, we take another approach: every block retains its own cache. When 
 In this method, we have to delete the cache of older blocks, such as the block 20 blocks far from the newest one, in order to limit the size of cache to a certain range. Otherwise, it will run out of memory, and it will violate our design principle.
 Adopting this method leads to a new problem. If we duplicate the cache of the previous block, the space of cache will be proportional to the cache numbers that we didn’t delete. However, there is a high similarity of the cache in adjacent blocks. If we use appropriate data structure to have the cache shared by adjacent blocks, it will effectively increase space usage.
 
-\begin{figure}[htbp]
-\centerline{\includegraphics{../images/LRU.png}}
-\caption{Example of a figure caption.}
-\label{fig}
-\end{figure}
+\subsection{LRU}
+LRU is an acronym for “least recently used”. In this strategy, the size of cache is fixed. If a cache is full, it will discard a piece of data before inserting new data. The least recently used data are chosen by LRU strategy, and it will be discarded.
+The reasons why LRU has higher hit rate than FIFO are revealed by the history data of Ethereum. First, after an account spends money, it is highly possible that it will spend money again. Second, after an account receives money,  it is highly possible that it will spend money right away. Because LRU updates the using time of data, it is able to keep caching the data appearing frequently. However, FIFO only looks at the coming time of data. Even if some data appear frequently, they will be discarded sooner or later.
+From an abstract view, LRU is a data structure that supports two kinds of interface.
+\begin{itemize}
+\item get(key)
+\item put(key, value)
+\end{itemize}
+When executing get(key), LRU will determine whether the key exists. If the key exists, it will return the value and update its using time.
+When executing put(key, value), LRU will determine whether the space of LRU is full. If the space of LRU isn’t full, the key-value pair will be inserted to the space directly.  If the space of LRU is full, LRU will find out the least recently used one in the cache and abandon it, and then insert the new key-value pair to it. The using time of the new key-value pair should be the latest.
+Corresponding to the situation of stateless blockchain, everytime when a new block appends to the chain, we have to compute the cache of the new block. In this time, a series of read and modify execution of accounts will turn into get and put. Key will be the address of account, and value will be the state of account. Finally, the underlying data structure of LRU will take the correspondent action.
 
-% \begin{figure}[htbp]
-% \centerline{\includegraphics{../images/不可變紅黑樹.png}}
-% \caption{Example of a figure caption.}
-% \label{fig}
-% \end{figure}
+\subsection{persistent LRU algorithm}
+Before discussing persistent LRU algorithms, we first observe how to efficiently implement LRU cache on software. Judging from several popular LRU libraries on github, interior data structures are all combinations of hash table and doubly linked list.
+While executing get, it will get the data by the pointer pointing to the node of list. Then, the node will move to the head of the list. While executing put, if cache hits, the value of node will be updated, and the node will move to the head of the list. If cache is not full, the cache value will be added to the head and the pointer will be put in the hash table. Instead, if the cache is full, pull out the tail node of the doubly linked list, and delete the old key in the hash table. Then, add cache value to the head and put the pointer in the hash table.
+We observed that there are two kinds of information that need to be recorded by LRU.
+\begin{enumerate}
+  \item find the value from key (key-value pair)
+  \item the order information of all keys
+\end{enumerate}
+In the implementation of combinations of hash table and doubly linked list, hash table is responsible for (1), and doubly linked list is responsible for (2). We observed that a doubly linked list records the order relationship naturally, and it doesn't even need to record the definite using time.
+There is one simple idea that we directly combine persistent-versioned alternatives of a hash table and a doubly linked list, and then we get a persistent LRU. Although there are mature alternatives for hash tables, it is hard to find such a thing for doubly linked lists.
+Thus, we need to use other persistent and efficient data structures to replace doubly linked lists. The things that an abstract doubly linked list can do are as follows.
+\begin{itemize}
+\item Update the using time of node to latest
+\item Delete the least recently used node
+\item Insert new node and update the using time of the node to latest
+\end{itemize}
+Following we will discuss how to use red-black tree to complete the above tasks and introduce our design of order tree, which is more efficient than red-black tree.
+
+\subsection{hash table + red-black tree}
+We tried to use red-black to record the order information.
+First, set a unique timestamp for every account.
+This timestamp is easy to access. For instance,
+it could be $block\_height * max\_tx\_in\_one\_block+ tx\_number$.
+Afterwards, build a red-black tree whose key is timestamp and value is account’s information. About hash table, the account's address is set as key and the correspondent timestamp is set as value.
+While executing get, it first gets the timestamp from the account's address in the hash table, and then gets the account’s information from the timestamp in the red-black tree. For example, in Fig 3.6, we first get the account’s timestamp, 243, from the hash table, and search 243 in red-black tree.
+After searching, it needs to update the using time. The specific operations are that modify the timestamp corresponding to the address in the hash table and remove the original node in red-black tree. Then, set the new timestamp as key. The put operation is similar to get operation. However, it needs to modify the account's information. 
+Fig 3.6 shows the sharing structure of the persistent red-black tree. In this figure, the cache size is 8. In state 1, there are only 7 data. After that, state 2 insert 14 in it, and there are 8 data. State 3 insert 15 to state 2, and the cache is full. Therefore, it has to delete the data of minimum timestamp; that is, the red 7 at lower left corner will be deleted.
+
 
 \subsection{Maintaining the Integrity of the Specifications}
 
