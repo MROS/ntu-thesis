@@ -11,29 +11,13 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{The Design of Shallow State Blockchain*\\
-{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
-should not be used}
-\thanks{Identify applicable funding agency here. If none, delete this.}
-}
+\title{The Design of Shallow State Blockchain}
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
+\author{\IEEEauthorblockN{1\textsuperscript{st} TSAI, TSUEN-JE}
+\IEEEauthorblockA{\textit{Department of Computer Science \& Information Engineering} \\
+\textit{National Taiwan University}\\
+Taipei, Taiwan \\
+r05922086@ntu.edu.tw}
 }
 
 \maketitle
@@ -65,7 +49,7 @@ blockchain, stateless blockchain, data structure
 \end{IEEEkeywords}
 
 \section{Introduction}
-In 2008, Satoshi Nakamoto proposed the white paper of bitcoin. It is a new type of cryptocurrency system based on blockchain. In this system, each node maintain a complete ledger in order to attain the high degree of decentralization of entire system. However, as the data size of ledger got bigger and bigger, storage space of node increased yearly. Ten years later, it costs hundreds of GB storage space for a node to run some well-known cryptocurrency system, such as Bitcoin and Ethereum. Thus, it gradually make the nodes maintained by person overload. If we settle for second best by saving the information needed for verifying new block, such as UTXO in Bitcoin and world state in Ethereum, it still needs several or tens of GB for disk storage place. With this method, not only the storage space of disk is requested but also  I/O speed. Furthermore, it is too slow for traditional disk to access randomly. The speed of verifying a block on Ethereum can't keep up with the generation speed of blocks. It force the node maintainer on Ethereum to buy expensive solid-state disk, and it further cause the increase in operation cost of node.
+In 2008, Satoshi Nakamoto proposed the white paper of bitcoin~\cite{b3}. It is a new type of cryptocurrency system based on blockchain. In this system, each node maintain a complete ledger in order to attain the high degree of decentralization of entire system. However, as the data size of ledger got bigger and bigger, storage space of node increased yearly. Ten years later, it costs hundreds of GB storage space for a node to run some well-known cryptocurrency system, such as Bitcoin and Ethereum~\cite{b4}. Thus, it gradually make the nodes maintained by person overload. If we settle for second best by saving the information needed for verifying new block, such as UTXO in Bitcoin and world state in Ethereum, it still needs several or tens of GB for disk storage place. With this method, not only the storage space of disk is requested but also  I/O speed. Furthermore, it is too slow for traditional disk to access randomly. The speed of verifying a block on Ethereum can't keep up with the generation speed of blocks. It force the node maintainer on Ethereum to buy expensive solid-state disk, and it further cause the increase in operation cost of node.
 
 To deal with the problem above, cryptocurrency communities start trying several solutions, and stateless blockchain is prospective one of them. It only need to store block header for each node on stateless blockchain. Nevertheless, each transaction must be attached with proof of validity. This approach significantly reduces the requirement of storage space. Furthermore, it is no need to search the validity of transaction on disk; namely, it drastically reduces the I/O time.
 
@@ -73,25 +57,39 @@ This paper proposes an imrpovement to stateless blockchain. We let the node on s
 
 The remaining sections are arranged as follows. Section II narratives some related works, whereas section III describes the background of this paper and preliminary knowledge; section IV illuminates the design of stateless blockchain, including cache strategies and data structures used by cache; section V shows the design and results of experiment; section VI discusses future extensions to stateless blockchain, and concluding remarks are found in section VII.
 
-
 \section{design}
 In order to reduce occupied space of the disk, it is necessary for a stateless blockchain to attach a proof to each transaction. However, this move will increase Internet traffic. Furthermore, to reduce the time of accessing disk, it will cost computational power for CPU to verify the proof.
 Compared to normal blockchain, stateless blockchain made some trade-offs. Regarding the purpose of shallow-state blockchain, the trade-offs are no longer all or nothing, which means that all transactions are attached with proofs or none of transactions are attached with proofs. It makes the degree of state storage adjustable.
 
 \subsection{shallow-state blockchain}
-In stateless blockchain, if payers and payees in some transactions are the same, the proofs in these transactions will be identical. It is obvious that the same proofs can be omitted in a block. Extended by this idea, if we cache the accounts’ information appearing in recent transactions, there is no need to verify the proof again when the accounts make transactions. To go a step further, if nodes on the Internet follow the same set of rules to record cache, it will reach a consensus that node knows whether to attach the proof. While broadcasting the block, nodes can get rid of unnecessary proofs, and then reduce internet traffic.
+In stateless blockchain, if payers and payees in some transactions are the same, the proofs in these transactions will be identical. It is obvious that the same proofs can be omitted in a block. Extended by this idea, if we cache the accounts’ information appearing in recent transactions, there is no need to verify the proof again when the accounts make transactions.
+
+To go a step further, if nodes on the Internet follow the same set of rules to record cache, it will reach a consensus that node knows whether to attach the proof. While broadcasting the block, nodes can get rid of unnecessary proofs, and then reduce internet traffic.
 
 \subsection{cache design}
-The problems mentioned above can be avoided by a simple design principle. Namely, each block has its own cache, and the content of cache depends on which chain the block is situated. Therefore, we turn a tree structure into a list, and it is definitely identical for the block on different nodes. If every node uses the same deterministic algorithm to compute the cache from this list, it can ensure that every node gets identical results of cache after verifying the same block.
+We can make every node's cache the same by a simple design principle. Namely, each block has its own cache, and the content of cache depends on which chain the block is situated. Therefore, we turn a tree structure into a list, and it is definitely identical for the block on different nodes. If every node uses the same deterministic algorithm to compute the cache from this list, it can ensure that every node gets identical results of cache after verifying the same block.
 
 \subsection{persistent cache}
-In this part, we take another approach: every block retains its own cache. When a new block is about to append to the chain, it can directly use the cache of the previous block. Thus, there is no need to compute cache again. In other words, we adopt fully persistent data structure to store cache. Everytime the chain gets a new block, it creates a new version of cache.
+We take an approach: every block retains its own cache. When a new block is about to append to the chain, it can directly use the cache of the previous block. Thus, there is no need to compute cache again. In other words, we adopt fully persistent data structure to store cache. Everytime the chain gets a new block, it creates a new version of cache.
 In this method, we have to delete the cache of older blocks, such as the block 20 blocks far from the newest one, in order to limit the size of cache to a certain range. Otherwise, it will run out of memory, and it will violate our design principle.
 Adopting this method leads to a new problem. If we duplicate the cache of the previous block, the space of cache will be proportional to the cache numbers that we didn’t delete. However, there is a high similarity of the cache in adjacent blocks. If we use appropriate data structure to have the cache shared by adjacent blocks, it will effectively increase space usage.
 
 \subsection{LRU}
-LRU is an acronym for “least recently used”. In this strategy, the size of cache is fixed. If a cache is full, it will discard a piece of data before inserting new data. The least recently used data are chosen by LRU strategy, and it will be discarded.
-The reasons why LRU has higher hit rate than FIFO are revealed by the history data of Ethereum. First, after an account spends money, it is highly possible that it will spend money again. Second, after an account receives money,  it is highly possible that it will spend money right away. Because LRU updates the using time of data, it is able to keep caching the data appearing frequently. However, FIFO only looks at the coming time of data. Even if some data appear frequently, they will be discarded sooner or later.
+LRU is an acronym for “least recently used”.
+In this strategy, the size of cache is fixed.
+If a cache is full, it will discard a piece of data before inserting new data.
+In LRU strategy, the least recently used data will be discarded.
+The reasons why LRU has higher hit rate than FIFO are revealed by the history data of Ethereum.
+First, after an account spends money,
+it is highly possible that it will spend money again.
+Second, after an account receives money,
+it is highly possible that it will spend money right away.
+Because LRU updates the using time of data,
+it is able to keep caching the data appearing frequently.
+However, FIFO only looks at the coming time of data.
+Even if some data appear frequently,
+they will be discarded sooner or later.
+
 From an abstract view, LRU is a data structure that supports two kinds of interface.
 \begin{itemize}
 \item get(key)
@@ -110,24 +108,87 @@ We observed that there are two kinds of information that need to be recorded by 
   \item the order information of all keys
 \end{enumerate}
 In the implementation of combinations of hash table and doubly linked list, hash table is responsible for (1), and doubly linked list is responsible for (2). We observed that a doubly linked list records the order relationship naturally, and it doesn't even need to record the definite using time.
-There is one simple idea that we directly combine persistent-versioned alternatives of a hash table and a doubly linked list, and then we get a persistent LRU. Although there are mature alternatives for hash tables, it is hard to find such a thing for doubly linked lists.
+There is one simple idea that we directly combine persistent-versioned alternatives of a hash table and a doubly linked list, and then we get a persistent LRU. Although there are mature alternatives~\cite{b5}~\cite{b6} for hash tables, it is hard to find such a thing for doubly linked lists.
 Thus, we need to use other persistent and efficient data structures to replace doubly linked lists. The things that an abstract doubly linked list can do are as follows.
 \begin{itemize}
 \item Update the using time of node to latest
 \item Delete the least recently used node
 \item Insert new node and update the using time of the node to latest
 \end{itemize}
-Following we will discuss how to use red-black tree to complete the above tasks and introduce our design of order tree, which is more efficient than red-black tree.
+Following we will discuss how to use red-black tree~\cite{b7} to complete the above tasks and introduce our design of order tree, which is more efficient than red-black tree.
 
 \subsection{hash table + red-black tree}
 We tried to use red-black to record the order information.
 First, set a unique timestamp for every account.
 This timestamp is easy to access. For instance,
 it could be $block\_height * max\_tx\_in\_one\_block+ tx\_number$.
+
 Afterwards, build a red-black tree whose key is timestamp and value is account’s information. About hash table, the account's address is set as key and the correspondent timestamp is set as value.
-While executing get, it first gets the timestamp from the account's address in the hash table, and then gets the account’s information from the timestamp in the red-black tree. For example, in Fig 3.6, we first get the account’s timestamp, 243, from the hash table, and search 243 in red-black tree.
+While executing get, it first gets the timestamp from the account's address in the hash table, and then gets the account’s information from the timestamp in the red-black tree. For example, in Fig 1, we first get the account’s timestamp, 243, from the hash table, and search 243 in red-black tree.
 After searching, it needs to update the using time. The specific operations are that modify the timestamp corresponding to the address in the hash table and remove the original node in red-black tree. Then, set the new timestamp as key. The put operation is similar to get operation. However, it needs to modify the account's information. 
-Fig 3.6 shows the sharing structure of the persistent red-black tree. In this figure, the cache size is 8. In state 1, there are only 7 data. After that, state 2 insert 14 in it, and there are 8 data. State 3 insert 15 to state 2, and the cache is full. Therefore, it has to delete the data of minimum timestamp; that is, the red 7 at lower left corner will be deleted.
+Fig 2 shows the sharing structure of the persistent red-black tree. In this figure, the cache size is 8. In state 1, there are only 7 data. After that, state 2 insert 14 in it, and there are 8 data. State 3 insert 15 to state 2, and the cache is full. Therefore, it has to delete the data of minimum timestamp; that is, the red 7 at lower left corner will be deleted.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{../images/ht-rb-tree}
+  \caption{hash table + red-black tree}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{../images/immutable-rb-tree}
+  \caption{immutable red-black tree}
+\end{figure}
+
+\subsection{hash table + order tree}
+Doubly linked list records order relations by the pointer relations of nodes. Red-black tree has to additionally record the timestamp. Moreover, the account’s information that we can search with the hash table in one time now needs two steps with red-black tree; namely, we find the timestamp from the address, and then find the account's information from the timestamp.
+The reason why doubly linked lists cannot turn into persistent data structure through path copying is that two adjacent nodes always point to each other. Once modifying the node by path copying, it has to copy the whole list. Therefore, we want to find another way to connect the nodes.
+
+Image to weave a net behind the nodes, and then stick them together.
+The basic form of the net structure is a full binary tree. We name the structure using a full binary tree to store order data as order tree. We will introduce the operations of order tree as follows.
+
+If cache size is n, the height of the order tree will be set as 1 + logn. That is to say, the number of leaves is at least two times the cache size. Fig. 3 shows that there is an order tree with size 4, and it has 8 leaf nodes.
+
+Applying to LRU cache, the value stored by the hash table is a pointer pointing to the leaf node of the order tree. It only needs one time to get the data by searching the hash table. 
+Order tree stores the entire data in leaf nodes, and each data is arranged in the order of time. In this paper, the newer the data, the more the right side of the leaf position. We will explain and draw in this way.
+
+Some leaf nodes in the order tree have stored data, while some of them haven’t. We call the leaf with data as “used leaf”, and the leaf without data as “unused leaf”.
+While executing get, change the used leaf into an unused leaf if it has been searched, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. While executing put, first find the leftmost used leaf and change it into unused, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. No matter get or put, it always occupies a leaf on the right. If the used leaf is on the rightmost of the tree, it has to execute full copy. Therefore, make all the used leaves tightly packed together to the left side of the new order tree in the original order.
+
+Fig. 4 shows a series of execution of order tree. In this figure, full copy happens at the time when state 7 turns into state 8. The light blue nodes in the figure mean that they are unused. Notice that we painted all unused leaves of subtree light blue.
+In implementation, there is no need to allocate memory space to light blue nodes. The pointer pointing to light blue subtree is a null pointer.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{../images/order-tree}
+  \caption{order tree with size 4}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{../images/order-trees}
+  \caption{order tree multiple operation}
+\end{figure}
+
+\subsubsection{complexity analysis}
+In the following analysis, the size of the order tree is $n$.
+If full copy doesn’t happen, execution of get and put go through root to leaf two times.
+The height of the order tree is $O(\log n)$, and the time and space complexity are both $O(\log n)$.  
+
+If full copy happens, it has to go through the order tree,
+and has all used leaves congregate to form a new tree.
+Notice that the total number of nodes of a full binary tree is two times the quantity of leaves minus one,
+and the total number won’t exceed $8*n$.
+Therefore, the time and space complexity are both $O(n)$.
+
+It may be a little high for the $O(n)$ complexity.
+However, everytime when operating get or put only
+make the used leaf move one grid to the right.
+It costs  at least n operations for the used leaf
+to go to the rightmost of the tree. Thus, if the
+cost of full copy is amortized to every operation,
+the time and space complexity are both $O(1)$,
+and time and space complexity of get and put are still $O(\log n)$.
 
 
 \section{Related Work}
@@ -156,13 +217,22 @@ However, the paper does not propose a way to remove older versions of the persis
 This makes it difficult to apply these algorithms to the caching of shallow state blockchains.
 Because the inability to delete past versions will result in the space needed for caching never being released.
 
+\section{Conclusion}
+This paper describes the design of shallow state blockchain and discusses the advantages and disadvantages of multiple cache strategies.
+Especially for the LRU cache strategy, 
+we first try the combination of persistent hash table and persistent red-black trees,
+Further proposed a novel data structure, order tree, let it be combined with persistent hash,
+Get a more efficient implementation of persistent LRU.
 
 \begin{thebibliography}{00}
 \bibitem{b1} Dryja, Thaddeus. Utreexo: A dynamic hash-based accumulator optimized for the Bitcoin UTXO set. Vol. 2019. IACR Cryptology ePrint Archive, 2019.
 \bibitem{b2} Driscoll, James R., et al. "Making data structures persistent." Proceedings of the eighteenth annual ACM symposium on Theory of computing. 1986.
+\bibitem{b3} Nakamoto, Satoshi. Bitcoin: A peer-to-peer electronic cash system. Manubot, 2019.
+\bibitem{b4} Wood, Gavin. "Ethereum: A secure decentralised generalised transaction ledger." Ethereum project yellow paper 151.2014 (2014): 1-32.
+\bibitem{b5} BAGWELL, Phil. Ideal hash trees. 2001.
+\bibitem{b6} Stucki, Nicolas, et al. "RRB vector: a practical general purpose immutable sequence." Proceedings of the 20th ACM SIGPLAN International Conference on Functional Programming. 2015.
+\bibitem{b7} Guibas, Leo J., and Robert Sedgewick. "A dichromatic framework for balanced trees." 19th Annual Symposium on Foundations of Computer Science (sfcs 1978). IEEE, 1978.
 \end{thebibliography}
 \vspace{12pt}
-\color{red}
-IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
 
 \end{document}
