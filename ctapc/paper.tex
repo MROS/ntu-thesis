@@ -49,13 +49,59 @@ blockchain, stateless blockchain, data structure
 \end{IEEEkeywords}
 
 \section{Introduction}
-In 2008, Satoshi Nakamoto proposed the white paper of bitcoin~\cite{b3}. It is a new type of cryptocurrency system based on blockchain. In this system, each node maintain a complete ledger in order to attain the high degree of decentralization of entire system. However, as the data size of ledger got bigger and bigger, storage space of node increased yearly. Ten years later, it costs hundreds of GB storage space for a node to run some well-known cryptocurrency system, such as Bitcoin and Ethereum~\cite{b4}. Thus, it gradually make the nodes maintained by person overload. If we settle for second best by saving the information needed for verifying new block, such as UTXO in Bitcoin and world state in Ethereum, it still needs several or tens of GB for disk storage place. With this method, not only the storage space of disk is requested but also  I/O speed. Furthermore, it is too slow for traditional disk to access randomly. The speed of verifying a block on Ethereum can't keep up with the generation speed of blocks. It force the node maintainer on Ethereum to buy expensive solid-state disk, and it further cause the increase in operation cost of node.
+In 2008, Satoshi Nakamoto proposed the white paper
+of bitcoin~\cite{b3}. It is a new type of cryptocurrency
+system based on blockchain. In this system, each node
+maintain a complete ledger in order to attain the
+high degree of decentralization of entire system.
+However, as the data size of ledger got bigger and bigger,
+storage space of node increased yearly. Ten years later,
+it costs hundreds of GB storage space for a node to run
+some well-known cryptocurrency system, such as Bitcoin and
+Ethereum~\cite{b4}. Thus, it gradually make the nodes maintained
+by person overload. If we settle for second best by saving the
+information needed for verifying new block, such as UTXO in
+Bitcoin and world state in Ethereum, it still needs
+several or tens of GB for disk storage place. With
+this method, not only the storage space of disk is
+requested but also  I/O speed. Furthermore, it is
+too slow for traditional disk to access randomly.
+The speed of verifying a block on Ethereum can't keep
+up with the generation speed of blocks. It force the node
+maintainer on Ethereum to buy expensive solid-state disk,
+and it further cause the increase in operation cost of node.
 
-To deal with the problem above, cryptocurrency communities start trying several solutions, and stateless blockchain is prospective one of them. It only need to store block header for each node on stateless blockchain. Nevertheless, each transaction must be attached with proof of validity. This approach significantly reduces the requirement of storage space. Furthermore, it is no need to search the validity of transaction on disk; namely, it drastically reduces the I/O time.
+To deal with the problem above, cryptocurrency communities
+start trying several solutions, and stateless blockchain
+is prospective one of them. It only need to store
+block header for each node on stateless blockchain.
+Nevertheless, each transaction must be attached with
+proof of validity. This approach significantly reduces
+the requirement of storage space. Furthermore, it is
+no need to search the validity of transaction on disk;
+namely, it drastically reduces the I/O time.
 
-This paper proposes an imrpovement to stateless blockchain. We let the node on stateless blockchain reach a consensus to maintain a cache. If the payer of transaction appears in recent transaction, it is highly possible to infer the validity from cache. Hence, due to the omission of proof of validity, it reduces the size of transaction and the Internet traffic while broadcasting. However, how to maintain cache effectively becomes a new problem. When a new block append to the blockchain, there will be a correspondent cache. Nevertheless, there will also exist overlap on the blocks nearby. Therefore, we design persisted data structure for different cache strategies, such as the nearest k blocks and LRU, and we conduct an experiment to test their performance.
+This paper proposes an imrpovement to stateless blockchain.
+We let the node on stateless blockchain reach a consensus
+to maintain a cache. If the payer of transaction appears
+in recent transaction, it is highly possible to infer
+the validity from cache. Hence, due to the omission of
+proof of validity, it reduces the size of transaction and
+the Internet traffic while broadcasting. However, how
+to maintain cache effectively becomes a new problem.
+When a new block append to the blockchain, there will be
+a correspondent cache. Nevertheless, there will
+also exist overlap on the blocks nearby.
+Therefore, we design persisted data structure
+for different cache strategies, such as the
+nearest k blocks and LRU, and we conduct an
+experiment to test their performance.
 
-The remaining sections are arranged as follows. Section II narratives some related works, whereas section III describes the background of this paper and preliminary knowledge; section IV illuminates the design of stateless blockchain, including cache strategies and data structures used by cache; section V shows the design and results of experiment; section VI discusses future extensions to stateless blockchain, and concluding remarks are found in section VII.
+The remaining sections are arranged as follows.
+section II illuminates the design of stateless blockchain,
+including cache strategies and data structures
+used by cache; Section III narratives some related works,
+and concluding remarks are found in section IV.
 
 \section{design}
 In order to reduce occupied space of the disk, it is necessary for a stateless blockchain to attach a proof to each transaction. However, this move will increase Internet traffic. Furthermore, to reduce the time of accessing disk, it will cost computational power for CPU to verify the proof.
