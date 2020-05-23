@@ -14,8 +14,19 @@
 會將它廣播到網路上，收到區塊的節點必須驗證後決定是否接收，
 若接收，賬本的內容就得到更新。
 
-根據收付款的方式，區塊鏈貨幣可分為類似零錢式的 UTXO 系統，
-以及類似銀行賬戶式的賬戶系統，
+根據收付款的方式， 區塊鏈貨幣可分為類似銀行賬戶式的賬戶系統，
+以及類似零錢式的 UTXO (unspent transaction output) 系統。
+
+賬戶系統中，每個用戶擁有一個地址，地址有它相對應的私鑰，
+經由私鑰簽章，用戶就能將他持有的資產轉移到其他地址。
+
+UTXO 系統中存在著大量的 UTXO ，每個 UTXO 上有一個腳本，
+當一個使用者能夠提供一個輸入（通常是使用他的私鑰簽名）使得腳本執行結果爲真，
+他就得以花費這筆 UTXO ，花費 UTXO 後會產生其他的 UTXO ，
+只要新生成的 UTXO 只有收款人才能花費，資產的轉移就完成了。
+在 UTXO 系統中，使用者擁有的是一組它能夠花費的 UTXO ，
+而非一個賬戶上的一個代表存款的數字。
+
 在本論文中，只關注基於賬戶的區塊鏈系統，忽略 UTXO 的區塊鏈系統。
 
 \subsection{區塊驗證}
@@ -49,7 +60,9 @@
 永遠增長的區塊已經對節點維護者造成負擔，比特幣與以太坊佔用的空間都已經超過 200 GB ，
 如果在 AWS 上租用機器來運行以太坊節點，每個月需花費 50 - 70 美金，
 這個成本如果降不下來，慈善節點的數量勢必會不斷下滑，
-根據 \url{https://ethernodes.org/} 的資訊，2018 年仍有將近兩萬個節點，2020 年已經下降到七千。
+根據 \href{https://web.archive.org}{Wayback Machine} 上 \url{https://ethernodes.org/} 的資訊，
+\href{https://web.archive.org/web/20180224224831/https://www.ethernodes.org/network/1}{2018 年 2 月}有逾兩萬個節點，
+\href{https://web.archive.org/web/20200512075927/https://www.ethernodes.org/}{2020 年 5 月}已經下降到七千。
 
 另外一個問題是，以太坊中存在許多智慧合約已經不再被使用，例如 EOS 的 首次貨幣發行 (ICO) ，
 在發行結束後，該合約已無作用，但所有的全節點卻仍得繼續儲存它的歷史數據。
@@ -80,6 +93,10 @@
 在交易中附上付款人的餘額，以及付款人狀態的梅克爾路徑（merkle path），
 如此，就可以確認付款人的餘額，再去看它是否足夠支應本次交易。
 
+圖 2.1 是一般區塊鏈交易與無狀態區塊鏈交易的對比，
+同樣是一筆 Bob 給 Alice 200 元的交易，在無狀態區塊鏈上，
+必須多附上一筆證明（黃色部分），以供無狀態節點驗證交易的合法性。
+
 \begin{figure}
 \includegraphics[width=\textwidth]{stateless-tx}
 \caption{一般區塊鏈、無狀態區塊鏈交易比較}
@@ -91,15 +108,15 @@
 可以做到這些功能的結構被稱為 vector commitment\cite{catalano2013vector}。
 
 近年來， vector commitment 領域也持續出現不同針對無狀態區塊鏈的代數構造，
-時空間複雜度或是常數往往更小。
+它們相較於梅克爾樹，時空間複雜度更小，或是擁有其他優點：
 有的能夠將多個證明打包以降低空間\cite{boneh2019batching}，
 有的則有同態加法的特性，使得製作交易證明時，付款人不用知道收款人的當前餘額\cite{chepurnoy2018edrax}。
 
 \section{持久化資料結構}
 
 如果一種資料結構在修改之後，能夠保留之前的版本，
-就可以被稱為持久化資料結構\cite{driscoll1986making}(Persistent Data Structure)，
-與之相對的是暫時性資料結構(Ephemeral Data Structure)。
+就可以被稱為持久化資料結構\cite{driscoll1986making}（Persistent Data Structure），
+與之相對的是暫時性資料結構（Ephemeral Data Structure）。
 
 \subsection{路徑複製}
 對於樹這種資料結構，可以利用路徑複製的技巧來將它變得持久化，
