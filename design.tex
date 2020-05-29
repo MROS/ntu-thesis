@@ -201,7 +201,7 @@ put(key, value) 時，若 LRU 空間未滿，直接插入一筆鍵值對，
 \end{itemize}
 
 以下，先討論了如何用紅黑樹\cite{guibas1978dichromatic}（平衡搜尋樹）來完成上述任務，
-再介紹我們設計的順序樹資料結構，相比紅黑樹，它更加高效。
+再介紹我們設計的順序樹（ordered tree）資料結構，相比紅黑樹，它更加高效。
 
 \subsection{雜湊 + 紅黑樹}
 
@@ -236,7 +236,7 @@ put 類似於 get ，但需要修改賬戶資訊。
 % TODO:
 % \subsubsection{紅黑樹 bulk 優化}
 
-\subsection{雜湊 + 順序樹（order tree）}
+\subsection{雜湊 + 順序樹（ordered tree）}
 
 雙向鏈接串列以節點之間的指向關係記錄順序關係，紅黑樹卻必須額外記錄時間序，
 此外，原本透過雜湊就能一次查找到賬戶資訊，
