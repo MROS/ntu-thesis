@@ -3,10 +3,11 @@
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
+% \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{hyperref}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -23,25 +24,40 @@ r05922086@ntu.edu.tw}
 \maketitle
 
 \begin{abstract}
-Cryptocurrency based on blockchain is a peer to peer trading system.
-In this decentralized system, each node maintain a complete ledger which records entire transaction history of all account.
-The system has the characteristics that it is very hard to tamper with the data.
-However, such characteristic only makes the data increase but do not decrease.
-Years after years, requirement to single node will get higher and higher.
-Once some entities get overwhelmed, the degree of centralization of this blockchain system will gradually rise
+Cryptocurrency based on blockchain is a peer to peer trading
+system. In this decentralized system,
+each node maintain a complete ledger which
+records entire transaction history of all account.
+Years after years, requirement to single node will
+get higher and higher. Dealing with the issue, stateless
+blockchain is a promising approach. To be more specific,
+in this system, each transaction is attached with proof
+of validity. With this approach, there is no need for a node
+to access the data storage device to search past information
+of the ledger. Instead, node only verifies the proof attached
+to each transaction. Therefore, it will significantly
+reduce the space of data storage for each node.
+But it will cause additional network traffic and
+verification time.
 
-Dealing with the issue, stateless blockchain is a promising approach.
-To be more specific, in this system, each transaction is attached with proof of validity.
-With this approach, there is no need for a node to access the disk to search past information of the ledger.
-Instead, node only verifies the proof attached to each transaction.
-Therefore, it will significantly reduce the space of data storage for each node.
-
-In this paper, we will discuss the following two points.
-First, it only need to cache part of information instead of attaching proof to each transaction.
-It is highly possible to infer the validity of a transaction from other valid transaction appearing recently.
-Second, when blockchain forks, it have to go back to the bifurcation point and create new cache of new blocks.
-To reach the purpose, we propose an immutable data structure so that cache can be rapidly computed under any situation.
-Finally, we conduct the experiments with different workload to understand the performance of different cache strategies and data structures
+In this paper, we will discuss the following two points
+on the account-based.
+First,
+It is highly possible to infer the validity of
+a transaction from other valid transaction appearing recently.
+If we cache account information, we can eliminate some
+proof in transactions and then reduce network traffic
+and verification time.
+Second,
+There are so many cache replacement polices.
+For LRU polices, we designed two composite data
+structures which based on red-black tree and order tree.
+And conduct some experiments to compare the costs of
+cache hit with the penalty of cache miss.
+Simulating today's Ethereum's block property,
+when cache size can contain several tens of blocks' information,
+the cache searching time is significantly lower than
+the time to verify Merkle Patricia proofs.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -81,7 +97,7 @@ the requirement of storage space. Furthermore, it is
 no need to search the validity of transaction on disk;
 namely, it drastically reduces the I/O time.
 
-This paper proposes an imrpovement to stateless blockchain.
+This paper proposes an improvement to stateless blockchain.
 We let the node on stateless blockchain reach a consensus
 to maintain a cache. If the payer of transaction appears
 in recent transaction, it is highly possible to infer
@@ -143,7 +159,7 @@ From an abstract view, LRU is a data structure that supports two kinds of interf
 \end{itemize}
 When executing get(key), LRU will determine whether the key exists. If the key exists, it will return the value and update its using time.
 When executing put(key, value), LRU will determine whether the space of LRU is full. If the space of LRU isn’t full, the key-value pair will be inserted to the space directly.  If the space of LRU is full, LRU will find out the least recently used one in the cache and abandon it, and then insert the new key-value pair to it. The using time of the new key-value pair should be the latest.
-Corresponding to the situation of stateless blockchain, everytime when a new block appends to the chain, we have to compute the cache of the new block. In this time, a series of read and modify execution of accounts will turn into get and put. Key will be the address of account, and value will be the state of account. Finally, the underlying data structure of LRU will take the correspondent action.
+Corresponding to the situation of stateless blockchain, every time when a new block appends to the chain, we have to compute the cache of the new block. In this time, a series of read and modify execution of accounts will turn into get and put. Key will be the address of account, and value will be the state of account. Finally, the underlying data structure of LRU will take the correspondent action.
 
 \subsection{persistent LRU algorithm}
 Before discussing persistent LRU algorithms, we first observe how to efficiently implement LRU cache on software. Judging from several popular LRU libraries on github, interior data structures are all combinations of hash table and doubly linked list.
@@ -193,7 +209,7 @@ The reason why doubly linked lists cannot turn into persistent data structure th
 Image to weave a net behind the nodes, and then stick them together.
 The basic form of the net structure is a full binary tree. We name the structure using a full binary tree to store order data as order tree. We will introduce the operations of order tree as follows.
 
-If cache size is n, the height of the order tree will be set as 1 + logn. That is to say, the number of leaves is at least two times the cache size. Fig. 3 shows that there is an order tree with size 4, and it has 8 leaf nodes.
+If cache size is n, the height of the order tree will be set as 1 + log n. That is to say, the number of leaves is at least two times the cache size. Fig. 3 shows that there is an order tree with size 4, and it has 8 leaf nodes.
 
 Applying to LRU cache, the value stored by the hash table is a pointer pointing to the leaf node of the order tree. It only needs one time to get the data by searching the hash table. 
 Order tree stores the entire data in leaf nodes, and each data is arranged in the order of time. In this paper, the newer the data, the more the right side of the leaf position. We will explain and draw in this way.
@@ -201,7 +217,7 @@ Order tree stores the entire data in leaf nodes, and each data is arranged in th
 Some leaf nodes in the order tree have stored data, while some of them haven’t. We call the leaf with data as “used leaf”, and the leaf without data as “unused leaf”.
 While executing get, change the used leaf into an unused leaf if it has been searched, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. While executing put, first find the leftmost used leaf and change it into unused, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. No matter get or put, it always occupies a leaf on the right. If the used leaf is on the rightmost of the tree, it has to execute full copy. Therefore, make all the used leaves tightly packed together to the left side of the new order tree in the original order.
 
-Fig. 4 shows a series of execution of order tree. In this figure, full copy happens at the time when state 7 turns into state 8. The light blue nodes in the figure mean that they are unused. Notice that we painted all unused leaves of subtree light blue.
+Fig. 4 shows a series of execution of order tree. In this figure, full copy happens at the time when state 6 turns into state 7. The light blue nodes in the figure mean that they are unused. Notice that we painted all unused leaves of subtree light blue.
 In implementation, there is no need to allocate memory space to light blue nodes. The pointer pointing to light blue subtree is a null pointer.
 
 \begin{figure}
@@ -236,6 +252,230 @@ cost of full copy is amortized to every operation,
 the time and space complexity are both $O(1)$,
 and time and space complexity of get and put are still $O(\log n)$.
 
+\section{experiment}
+In this section, we evaluated the performances of 
+persistent LRU implemented in different data 
+structures under different workload.
+
+\subsection{Experiment Environment}
+All experiments were all conducted on the workstation below:
+
+\begin{itemize}
+\item CPU: AMD Ryzen 7 2700X (8 cores 16 threads, 3.6 GHz, 32K L1d cache, 64k L1i cache, 512K L2 cache、8M L3 cache)
+\item memory: DDR4 64 GB
+\item OS: Linux manjaro 4.19.36-1-MANJARO x86\_64
+\item compiler: GCC 9.1.0
+\end{itemize}
+
+\subsection{Data Structures}
+
+We use C++ 17 implemented three data structures:
+
+\begin{itemize}
+\item hash table + doubly-linked list, it will copy itself when creating a new version
+\item persistent hash table + persistent red-black tree
+\item persistent hash table + persistent order tree
+\end{itemize}
+
+Because what we want to simulate is blockchain,
+all workload use block as unit.
+There are many get/put instructions in a block.
+To optimize this kind of workload,
+the persistent data structures described above all
+support transience. That means data structure doesn't 
+generate a new version for every get/put instruction,
+but generate an temporary ephemeral data structures and
+make it immutable one after operating batch of instructions.
+While eliminating lots of intermediate states,
+this optimization can significantly improve performance.
+
+We claim that, in our implementation:
+Hash table is unordered\_map in C++ standard library.
+For persistent hash table, we use famous C++
+persistent data structures library \href{https://sinusoid.es/immer/}{immer}.
+Doubly-linked list, persistent red-black tree,
+persistent order tree are all implemented by ourselves.
+
+From now on, we will refer to these three composite data structures
+as doubly linked list, red-black tree, and order tree.
+
+\subsection{performance}
+
+\subsubsection{workload}
+We use a simple model to simulate block generation,
+there are n nodes in the network,
+Each node will mine for the highest block
+(that is, the top of the longest chain it recognizes).
+Initially, The highest block of each node
+is genesis block. Afterwards, there were several rounds,
+In each round, each node has a certain probability
+to dig out new blocks. If it is not dug,
+It will go to the successor block of the
+highest block dug by other nodes,
+if the highest block does not have any successor block,
+node will randomly go to other longest chains.
+If no node has dug out any block,
+the same process will be repeated.
+
+In all workloads, it is assumed that there
+are 10 nodes in the network, and the probability
+of each node to dig out new block in one round is one-tenth.
+The block generating process will stop after mining 1000 blocks.
+Under this setting, there will be about
+1.5 blocks at the same height.
+
+From \href{https://etherscan.io/chart/gaslimit}{etherscan}, we can
+know that Ethereum's gas limit is about ten million, and
+it will cost 21000 gas fee per transaction.
+After simple division, a block can contain about 500 transactions.
+Therefore, the number of get/put instructions
+for one block of our workload is set to 500.
+
+In addition, There is another argument, get/put rate.
+For normal ethereum transaction,
+payment always results in state changing,
+but it's not true when smart contract is involved.
+Therefore, it is possible get/put instructions both appear.
+If there is no additional explanation below,
+the put instruction will account for 50 \% (get instruction also accounts for 50 \%).
+
+Before starting any task, we will first fill
+the entire cache, if not, when the cache size is set too large,
+workload takes a long time to fill it up,
+and the state when the cache is not full is not our concern,
+as the blockchain is usually composed of millions of blocks,
+For most of the time, the cache is full.
+
+\subsubsection{Adjust Cache Size}
+
+The first experiment fix hit rate to 100\%,
+and adjust the size of cache (the number of key-value pairs).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{adjust_cache_size.png}
+  \caption{adjust cache size}
+\end{figure}
+
+In Fig. 5, we can see that time cost by doubly-linked list
+is proportional to the cache size. It's because that
+the main cost of doubly-linked list is on replication.
+How big is the cache, how much is the amount to be copied each time the block is updated
+
+The growth curve of the red-black tree and the sequence
+tree is rather gentle ($O(\log n)$).
+Noting that the line graph of the order tree,
+compared to the smooth growth of the red-black tree,
+is somewhat oscillating,
+Because the number of leaves of the
+order tree is $1 + \lceil \log_2 n \rceil$,
+its number of leaves is more discrete,
+When the cache size reaches the power of $2^k$,
+the number of leaves doubles, which will affect
+the performance and cause oscillating.
+
+\subsubsection{Adjust hit rate}
+
+In this experiment, we fix cache size to 30000, and adjust hit rate.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{adjust_hit_rate.png}
+  \caption{adjust hit rate}
+\end{figure}
+
+In Fig 6, we can see that the hit rate has no effect
+on the doubly linked list, because its main consumption
+comes from replication, the only thing to do
+after the cache hit is to move a few pointer,
+it doesn't take much time.
+The time consumption of red-black trees and order
+trees will increase with the increase of hit rate.
+Because their main time-consuming comes from path copying,
+the more cache hits, the more branches need
+to be copied and created.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{adjust_put_rate.png}
+  \caption{adjust put rate}
+\end{figure}
+
+Set the cache size to 30000, the hit rate to 1.0,
+and adjust the proportion of put in the get/put instructions.
+It can be seen from Figure 7 that the performance
+is basically not affected.
+
+\subsection{Miss Penalty}
+
+When verifying a transaction whose related account information
+is not in the cache of the node (cache miss),
+This transaction must be accompanied by a proof
+for verification. Therefore, There are two penalties when cache miss:
+(1) It cost network I/O to receive the proof, which is directly related
+to the size of the proofs.
+(2) The CPU execution time consumed by the proof verification.
+
+From Fig 7 we can know that, when cache size is 30000,
+put rate is 100\%, hit rate is 1.0, order tree implementation
+can process 1000 blocks in 1.241 seconds, that means 
+the average time to process a block is 1.241 milliseconds.
+This number will be smaller when the cache size is smaller.
+
+We chose Merkle Patricia tree verification cost to compare
+with the order tree implementation,
+We choose \href{https://docs.rs/trie-db/0.20.1/trie_db/index.html}{trie-db} module,
+which is the part of one of the two major
+Ethereum implementations,
+\href{https://www.parity.io/ethereum/}{Parity Ethereum}, to conduct experiment.
+
+There are two factors that influence
+Merkle Patricia proof's verification performance:
+(1) If the number of leaves is $s$,
+the size of the proof is about $O(\log s)$.
+The time complexity of verifying a proof is also $O(\log s)$.
+(2) The number of proof in one batch.
+A Merkle proof is a branch of the Merkle tree.
+When a node is shared by multiple branches,
+there is no need to repeat calculations.
+So the time to verify $k$ proofs at a time will be
+shorter than $k$ times the time to verify a proof.
+
+By the information of \href{https://www.etherchain.org/charts/totalAccounts}{etherchain.org},
+the number of Ethereum accounts today has exceeded 80 million,
+So we first randomly insert 80 million pieces
+of data into the Merkle Patricia
+tree (that is, the number of leaves is 80 million),
+And based on the assumption of 500 transactions in
+one block, we batch verify 500 proofs at a time,
+The measured time is 5.536 milliseconds, which is
+obviously more time-consuming than direct access to cache.
+
+In the aspect of I/O overhead, the proof size of a
+block is about 900 KB, and 1000 blocks is almost 900 MB.
+If we use the common home network today,
+the time required to download these additional
+proof is more time-consuming than verifying the proofs.
+
+\subsection{Experiment Conclusion}
+
+The Experiments verify that order tree and red-black tree
+have lower time complexity. When the cache size increases
+to a certain extent, they significantly beat ever-copy
+doubly linked list in performance. Compared with
+red-black tree, order tree does not need to maintain
+the color of the node, and to execute various rotation rules,
+There is a little advantage in execution speed.
+
+At the same time, we also experimented and measured
+the proof size and verification speed of the Merkle
+Patricia tree. Understand that under normal circumstances,
+reading the cache directly is faster than downloading
+and verifying the proof. Based on these data,
+it can be deduced that if Merkle Patricia tree
+is used as vector commitment, if the shallow state
+blockchain adopts an appropriate cache size, it
+can bring speed improvement under the LRU strategy.
 
 \section{Related Work}
 \subsection{Utreexo}

@@ -1,28 +1,28 @@
 \begin{abstractzh}
-基於區塊鏈的加密貨幣是一種點對點的交易系統，
-在此去中心化的系統中，
+基於區塊鏈的加密貨幣網路中，
 每個節點都維護一個完整的賬本，
-其中記錄了所有賬戶的全部交易資料。
-這樣的系統具有不容易被竄改資料的特點，
-然而此種特性會使得所需要儲存的資料只增不減，
-經年累月下來，對單個節點的儲存容量要求只會越來越高，
-一旦個體維護的節點逐漸不勘負荷，
-將導致此區塊鏈的中心化程度逐步上升。
-
+經年累月，賬本的儲存容量越來越高，
+維護一個節點的成本也會越來越高。
 無狀態區塊鏈是一種針對以上問題的改進方案，
 它的每一筆交易中附上了合法性證明，
 使得節點不需要進入資料儲存裝置查找過往賬本資訊，
 只要驗證交易內附的證明即可，
-從而使節點所需儲存資訊大幅減少。
+從而使節點所需儲存的資訊量大幅減少，
+然而，要付出額外的網路流量與驗證時間。
 
-在本論文中，我們將討論以下兩點：
-第一，並無必要在每一筆交易都附上證明，
-只要快取部分訊息，
-一筆交易的合法性很可能由最近出現過的其他交易的合法性推知。
-第二，當區塊鏈發生分叉時，必須回到分叉點再產生新區塊的快取，
-為此我們設計了不可變的資料結構，
-使得快取能夠在各種情況下被快速計算。
-最後，進行實驗來瞭解數種快取策略與資料結構在不同工作量（workload）下的表現。
+在本論文中，我們將在基於帳號的區塊鏈上討論以下兩點：
+第一，
+一筆交易的合法性很可能由最近出現過的其他交易的合法性推知，
+只要快取帳號的訊息，
+就可以省略部分交易的證明，
+以此來減少網路流量與驗證時間。
+第二，
+快取替換有多種策略，針對 LRU 策略，
+設計了基於不可變紅黑樹與不可變順序樹的兩種資料結構，
+並且進行實驗比較了快取命中與快取失效的代價，
+模擬現今以太坊的區塊性質，
+當快取數十個區塊大小的賬戶資訊量時，
+快取命中所需的查找時間仍數倍低於梅克爾 Patricia 證明驗證的時間。
 
 
 \bigbreak
@@ -32,12 +32,40 @@
 
 \begin{abstracten}
 
-Cryptocurrency based on blockchain is a peer to peer trading system. In this decentralized system, each node maintain a complete ledger which records entire transaction history of all account. The system has the characteristics that it is very hard to tamper with the data. However, such characteristic only makes the data increase but do not decrease. Years after years, requirement to single node will get higher and higher. Once some entities get overwhelmed, the degree of centralization of this blockchain system will gradually rise.
+Cryptocurrency based on blockchain is a peer to peer trading
+system. In this decentralized system,
+each node maintain a complete ledger which
+records entire transaction history of all account.
+Years after years, requirement to single node will
+get higher and higher. Dealing with the issue, stateless
+blockchain is a promising approach. To be more specific,
+in this system, each transaction is attached with proof
+of validity. With this approach, there is no need for a node
+to access the data storage device to search past information
+of the ledger. Instead, node only verifies the proof attached
+to each transaction. Therefore, it will significantly
+reduce the space of data storage for each node.
+But it will cause additional network traffic and
+verification time.
 
-Dealing with the issue, stateless blockchain is a promising approach. To be more specific, in this system, each transaction is attached with proof of validity. With this approach, there is no need for a node to access the disk to search past information of the ledger. Instead, node only verifies the proof attached to each transaction. Therefore, it will significantly reduce the space of data storage for each node.
-
-In this paper, we will discuss the following two points.
-First, it only need to cache part of information instead of attaching proof to each transaction. It is highly possible to infer the validity of a transaction from other valid transaction appearing recently. Second, when blockchain forks, it have to go back to the bifurcation point and create new cache of new blocks. To reach the purpose, we propose an immutable data structure so that cache can be rapidly computed under any situation. Finally, we conduct the experiments with different workload to understand the performance of different cache strategies and data structures.
+In this paper, we will discuss the following two points
+on the account-based.
+First,
+It is highly possible to infer the validity of
+a transaction from other valid transaction appearing recently.
+If we cache account information, we can eliminate some
+proof in transactions and then reduce network traffic
+and verification time.
+Second,
+There are so many cache replacement polices.
+For LRU polices, we designed two composite data
+structures which based on red-black tree and order tree.
+And conduct some experiments to compare the costs of
+cache hit with the penalty of cache miss.
+Simulating today's Ethereum's block property,
+when cache size can contain several tens of blocks' information,
+the cache searching time is significantly lower than
+the time to verify Merkle Patricia proofs.
 
 \bigbreak
 \noindent
