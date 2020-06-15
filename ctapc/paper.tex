@@ -7,27 +7,32 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{hyperref}
+
+\columnsep 0.24in
+\addtolength{\topmargin}{0.075in}
+\addtolength{\textheight}{-0.1in}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{The Design of Shallow State Blockchain}
+\title{Structural Assessment on Stateless Blockchain Improvements with
+LRU-oriented Cache Replacement Policy}
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} TSAI, TSUEN-JE}
-\IEEEauthorblockA{\textit{Department of Computer Science \& Information Engineering} \\
-\textit{National Taiwan University}\\
-Taipei, Taiwan \\
-r05922086@ntu.edu.tw}
-}
+% \author{\IEEEauthorblockN{1\textsuperscript{st} TSAI, TSUEN-JE}
+% \IEEEauthorblockA{\textit{Department of Computer Science \& Information Engineering} \\
+% \textit{National Taiwan University}\\
+% Taipei, Taiwan \\
+% r05922086@ntu.edu.tw}
+% }
 
 \maketitle
 
 \begin{abstract}
 Cryptocurrency based on blockchain is a peer to peer trading
 system. In this decentralized system,
-each node maintain a complete ledger which
-records entire transaction history of all account.
+each node maintains a complete ledger which
+records entire transaction history of all accounts.
 Years after years, requirement to single node will
 get higher and higher. Dealing with the issue, stateless
 blockchain is a promising approach. To be more specific,
@@ -41,10 +46,10 @@ But it will cause additional network traffic and
 verification time.
 
 In this paper, we will discuss the following two points
-on the account-based.
+on account-based blockchain.
 First,
 It is highly possible to infer the validity of
-a transaction from other valid transaction appearing recently.
+a transaction from another valid transaction appearing recently.
 If we cache account information, we can eliminate some
 proof in transactions and then reduce network traffic
 and verification time.
@@ -116,8 +121,9 @@ experiment to test their performance.
 The remaining sections are arranged as follows.
 section II illuminates the design of stateless blockchain,
 including cache strategies and data structures
-used by cache; Section III narratives some related works,
-and concluding remarks are found in section IV.
+used by cache; Section III show the design and
+results of experiments; Section IV narratives some related works,
+and concluding remarks are found in section V.
 
 \section{design}
 In order to reduce occupied space of the disk, it is necessary for a stateless blockchain to attach a proof to each transaction. However, this move will increase Internet traffic. Furthermore, to reduce the time of accessing disk, it will cost computational power for CPU to verify the proof.
@@ -261,7 +267,7 @@ structures under different workload.
 All experiments were all conducted on the workstation below:
 
 \begin{itemize}
-\item CPU: AMD Ryzen 7 2700X (8 cores 16 threads, 3.6 GHz, 32K L1d cache, 64k L1i cache, 512K L2 cache、8M L3 cache)
+\item CPU: AMD Ryzen 7 2700X (8 cores 16 threads, 3.6 GHz, 32K L1d cache, 64k L1i cache, 512K L2 cache, 8M L3 cache)
 \item memory: DDR4 64 GB
 \item OS: Linux manjaro 4.19.36-1-MANJARO x86\_64
 \item compiler: GCC 9.1.0
@@ -292,7 +298,7 @@ this optimization can significantly improve performance.
 We claim that, in our implementation:
 Hash table is unordered\_map in C++ standard library.
 For persistent hash table, we use famous C++
-persistent data structures library \href{https://sinusoid.es/immer/}{immer}.
+persistent data structures library immer.
 Doubly-linked list, persistent red-black tree,
 persistent order tree are all implemented by ourselves.
 
@@ -324,7 +330,7 @@ The block generating process will stop after mining 1000 blocks.
 Under this setting, there will be about
 1.5 blocks at the same height.
 
-From \href{https://etherscan.io/chart/gaslimit}{etherscan}, we can
+From etherscan, we can
 know that Ethereum's gas limit is about ten million, and
 it will cost 21000 gas fee per transaction.
 After simple division, a block can contain about 500 transactions.
@@ -424,10 +430,10 @@ This number will be smaller when the cache size is smaller.
 
 We chose Merkle Patricia tree verification cost to compare
 with the order tree implementation,
-We choose \href{https://docs.rs/trie-db/0.20.1/trie_db/index.html}{trie-db} module,
-which is the part of one of the two major
+We choose trie-db module,
+which is a part of one of the two major
 Ethereum implementations,
-\href{https://www.parity.io/ethereum/}{Parity Ethereum}, to conduct experiment.
+Parity Ethereum, to conduct experiment.
 
 There are two factors that influence
 Merkle Patricia proof's verification performance:
@@ -441,7 +447,7 @@ there is no need to repeat calculations.
 So the time to verify $k$ proofs at a time will be
 shorter than $k$ times the time to verify a proof.
 
-By the information of \href{https://www.etherchain.org/charts/totalAccounts}{etherchain.org},
+By the information of etherchain.org,
 the number of Ethereum accounts today has exceeded 80 million,
 So we first randomly insert 80 million pieces
 of data into the Merkle Patricia
