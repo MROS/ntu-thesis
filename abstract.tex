@@ -10,15 +10,15 @@
 從而使節點所需儲存的資訊量大幅減少，
 然而，要付出額外的網路流量與驗證時間。
 
-在本論文中，我們將在基於帳號的區塊鏈上討論以下兩點：
+在本論文中，我們將在基於賬號的區塊鏈上討論以下兩點：
 第一，
 一筆交易的合法性很可能由最近出現過的其他交易的合法性推知，
-只要快取帳號的訊息，
+只要快取賬號的訊息，
 就可以省略部分交易的證明，
 以此來減少網路流量與驗證時間。
 第二，
 快取替換有多種策略，針對 LRU 策略，
-設計了基於不可變紅黑樹與不可變順序樹的兩種資料結構，
+設計了基於不可變紅黑樹與不可變值無關順序樹的兩種資料結構，
 並且進行實驗比較了快取命中與快取失效的代價，
 模擬現今以太坊的區塊性質，
 當快取數十個區塊大小的賬戶資訊量時，
@@ -51,17 +51,17 @@ verification time.
 In this paper, we will discuss the following two points
 on account-based blockchain.
 First,
-It is highly possible to infer the validity of
+it is highly possible to infer the validity of
 a transaction from another valid transaction appearing recently.
 If we cache account information, we can eliminate some
 proof in transactions and then reduce network traffic
 and verification time.
 Second,
-There are so many cache replacement polices.
+there are so many cache replacement polcies.
 For LRU polices, we designed two composite data
-structures which based on red-black tree and order tree.
-And conduct some experiments to compare the costs of
-cache hit with the penalty of cache miss.
+structures which based on red-black tree and value-independent order tree.
+And conduct some experiments to compare the cost of a
+cache hit with the penalty of a cache miss.
 Simulating today's Ethereum's block property,
 when cache size can contain several tens of blocks' information,
 the cache searching time is significantly lower than

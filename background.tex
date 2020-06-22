@@ -103,10 +103,10 @@ Turbo Sync 、Checkpoint Sync 等等新的同步模式，
 可以的，如果我們在交易中附上一些額外資訊，並且以區塊標頭來驗證這些額外資訊無誤，
 就能夠利用這些額外資訊來驗證交易的正確性了。
 
-在賬戶系統中，則可以讓所有賬戶狀態構成一顆梅克爾 Patricia 樹（patricia merkle tree）
-或是稀疏梅克爾樹（sparse merkle tree）\cite{dahlberg2016efficient}，
+在賬戶系統中，則可以讓所有賬戶狀態構成一顆梅克爾 Patricia 樹（Patricia Merkle tree）
+或是稀疏梅克爾樹（sparse Merkle tree）\cite{dahlberg2016efficient}，
 並且在區塊標頭裡放入根（也就是整個狀態的摘要），
-在交易中附上付款人的餘額，以及付款人狀態的梅克爾路徑（merkle path），
+在交易中附上付款人的餘額，以及付款人狀態的梅克爾路徑（Merkle path），
 如此，就可以確認付款人的餘額，再去看它是否足夠支應本次交易。
 
 圖 2.1 是一般區塊鏈交易與無狀態區塊鏈交易的對比，

@@ -54,9 +54,9 @@ If we cache account information, we can eliminate some
 proof in transactions and then reduce network traffic
 and verification time.
 Second,
-There are so many cache replacement polices.
-For LRU polices, we designed two composite data
-structures which based on red-black tree and order tree.
+There are so many cache replacement policies.
+For LRU policies, we designed two composite data
+structures which based on red-black tree and value-independent order tree.
 And conduct some experiments to compare the costs of
 cache hit with the penalty of cache miss.
 Simulating today's Ethereum's block property,
@@ -183,7 +183,7 @@ Thus, we need to use other persistent and efficient data structures to replace d
 \item Delete the least recently used node
 \item Insert new node and update the using time of the node to latest
 \end{itemize}
-Following we will discuss how to use red-black tree~\cite{b7} to complete the above tasks and introduce our design of order tree, which is more efficient than red-black tree.
+Following we will discuss how to use red-black tree~\cite{b7} to complete the above tasks and introduce our design of value-independent order tree, which is more efficient than red-black tree.
 
 \subsection{hash table + red-black tree}
 We tried to use red-black to record the order information.
@@ -208,42 +208,42 @@ Fig 2 shows the sharing structure of the persistent red-black tree. In this figu
   \caption{immutable red-black tree}
 \end{figure}
 
-\subsection{hash table + order tree}
+\subsection{hash table + value-independent order tree}
 Doubly linked list records order relations by the pointer relations of nodes. Red-black tree has to additionally record the timestamp. Moreover, the account’s information that we can search with the hash table in one time now needs two steps with red-black tree; namely, we find the timestamp from the address, and then find the account's information from the timestamp.
 The reason why doubly linked lists cannot turn into persistent data structure through path copying is that two adjacent nodes always point to each other. Once modifying the node by path copying, it has to copy the whole list. Therefore, we want to find another way to connect the nodes.
 
 Image to weave a net behind the nodes, and then stick them together.
-The basic form of the net structure is a full binary tree. We name the structure using a full binary tree to store order data as order tree. We will introduce the operations of order tree as follows.
+The basic form of the net structure is a full binary tree. We name the structure using a full binary tree to store order data as value-independent order tree. We will introduce the operations of value-independent order tree as follows.
 
-If cache size is n, the height of the order tree will be set as 1 + log n. That is to say, the number of leaves is at least two times the cache size. Fig. 3 shows that there is an order tree with size 4, and it has 8 leaf nodes.
+If cache size is n, the height of the value-independent order tree will be set as 1 + log n. That is to say, the number of leaves is at least two times the cache size. Fig. 3 shows that there is an value-independent order tree with size 4, and it has 8 leaf nodes.
 
-Applying to LRU cache, the value stored by the hash table is a pointer pointing to the leaf node of the order tree. It only needs one time to get the data by searching the hash table. 
-Order tree stores the entire data in leaf nodes, and each data is arranged in the order of time. In this paper, the newer the data, the more the right side of the leaf position. We will explain and draw in this way.
+Applying to LRU cache, the value stored by the hash table is a pointer pointing to the leaf node of the value-independent order tree. It only needs one time to get the data by searching the hash table. 
+value-independent order tree stores the entire data in leaf nodes, and each data is arranged in the order of time. In this paper, the newer the data, the more the right side of the leaf position. We will explain and draw in this way.
 
-Some leaf nodes in the order tree have stored data, while some of them haven’t. We call the leaf with data as “used leaf”, and the leaf without data as “unused leaf”.
-While executing get, change the used leaf into an unused leaf if it has been searched, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. While executing put, first find the leftmost used leaf and change it into unused, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. No matter get or put, it always occupies a leaf on the right. If the used leaf is on the rightmost of the tree, it has to execute full copy. Therefore, make all the used leaves tightly packed together to the left side of the new order tree in the original order.
+Some leaf nodes in the value-independent order tree have stored data, while some of them haven’t. We call the leaf with data as “used leaf”, and the leaf without data as “unused leaf”.
+While executing get, change the used leaf into an unused leaf if it has been searched, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. While executing put, first find the leftmost used leaf and change it into unused, and then write the data of the original leaf to the unused leaf on the right side of the rightmost used leaf. No matter get or put, it always occupies a leaf on the right. If the used leaf is on the rightmost of the tree, it has to execute full copy. Therefore, make all the used leaves tightly packed together to the left side of the new value-independent order tree in the original order.
 
-Fig. 4 shows a series of execution of order tree. In this figure, full copy happens at the time when state 6 turns into state 7. The light blue nodes in the figure mean that they are unused. Notice that we painted all unused leaves of subtree light blue.
+Fig. 4 shows a series of execution of value-independent order tree. In this figure, full copy happens at the time when state 6 turns into state 7. The light blue nodes in the figure mean that they are unused. Notice that we painted all unused leaves of subtree light blue.
 In implementation, there is no need to allocate memory space to light blue nodes. The pointer pointing to light blue subtree is a null pointer.
 
 \begin{figure}
   \centering
   \includegraphics[width=0.4\textwidth]{../images/order-tree}
-  \caption{order tree with size 4}
+  \caption{value-independent order tree with size 4}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.4\textwidth]{../images/order-trees}
-  \caption{order tree multiple operation}
+  \caption{value-independent order tree multiple operation}
 \end{figure}
 
 \subsubsection{complexity analysis}
-In the following analysis, the size of the order tree is $n$.
+In the following analysis, the size of the value-independent order tree is $n$.
 If full copy doesn’t happen, execution of get and put go through root to leaf two times.
-The height of the order tree is $O(\log n)$, and the time and space complexity are both $O(\log n)$.  
+The height of the value-independent order tree is $O(\log n)$, and the time and space complexity are both $O(\log n)$.  
 
-If full copy happens, it has to go through the order tree,
+If full copy happens, it has to go through the value-independent order tree,
 and has all used leaves congregate to form a new tree.
 Notice that the total number of nodes of a full binary tree is two times the quantity of leaves minus one,
 and the total number won’t exceed $8*n$.
@@ -280,7 +280,7 @@ We use C++ 17 implemented three data structures:
 \begin{itemize}
 \item hash table + doubly-linked list, it will copy itself when creating a new version
 \item persistent hash table + persistent red-black tree
-\item persistent hash table + persistent order tree
+\item persistent hash table + persistent value-independent order tree
 \end{itemize}
 
 Because what we want to simulate is blockchain,
@@ -300,10 +300,10 @@ Hash table is unordered\_map in C++ standard library.
 For persistent hash table, we use famous C++
 persistent data structures library immer.
 Doubly-linked list, persistent red-black tree,
-persistent order tree are all implemented by ourselves.
+persistent value-independent order tree are all implemented by ourselves.
 
 From now on, we will refer to these three composite data structures
-as doubly linked list, red-black tree, and order tree.
+as doubly linked list, red-black tree, and value-independent order tree.
 
 \subsection{performance}
 
@@ -370,11 +370,11 @@ How big is the cache, how much is the amount to be copied each time the block is
 
 The growth curve of the red-black tree and the sequence
 tree is rather gentle ($O(\log n)$).
-Noting that the line graph of the order tree,
+Noting that the line graph of the value-independent order tree,
 compared to the smooth growth of the red-black tree,
 is somewhat oscillating,
 Because the number of leaves of the
-order tree is $1 + \lceil \log_2 n \rceil$,
+value-independent order tree is $1 + \lceil \log_2 n \rceil$,
 its number of leaves is more discrete,
 When the cache size reaches the power of $2^k$,
 the number of leaves doubles, which will affect
@@ -423,13 +423,13 @@ to the size of the proofs.
 (2) The CPU execution time consumed by the proof verification.
 
 From Fig 7 we can know that, when cache size is 30000,
-put rate is 100\%, hit rate is 1.0, order tree implementation
+put rate is 100\%, hit rate is 1.0, value-independent order tree implementation
 can process 1000 blocks in 1.241 seconds, that means 
 the average time to process a block is 1.241 milliseconds.
 This number will be smaller when the cache size is smaller.
 
 We chose Merkle Patricia tree verification cost to compare
-with the order tree implementation,
+with the value-independent order tree implementation,
 We choose trie-db module,
 which is a part of one of the two major
 Ethereum implementations,
@@ -465,11 +465,11 @@ proof is more time-consuming than verifying the proofs.
 
 \subsection{Experiment Conclusion}
 
-The Experiments verify that order tree and red-black tree
+The Experiments verify that value-independent order tree and red-black tree
 have lower time complexity. When the cache size increases
 to a certain extent, they significantly beat ever-copy
 doubly linked list in performance. Compared with
-red-black tree, order tree does not need to maintain
+red-black tree, value-independent order tree does not need to maintain
 the color of the node, and to execute various rotation rules,
 There is a little advantage in execution speed.
 
@@ -513,7 +513,7 @@ Because the inability to delete past versions will result in the space needed fo
 This paper describes the design of shallow state blockchain and discusses the advantages and disadvantages of multiple cache strategies.
 Especially for the LRU cache strategy, 
 we first try the combination of persistent hash table and persistent red-black trees,
-Further proposed a novel data structure, order tree, let it be combined with persistent hash,
+Further proposed a novel data structure, value-independent order tree, let it be combined with persistent hash,
 Get a more efficient implementation of persistent LRU.
 
 \begin{thebibliography}{00}
