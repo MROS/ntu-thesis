@@ -5,7 +5,7 @@
 維護一個節點的成本也會越來越高。
 無狀態區塊鏈是一種針對以上問題的改進方案，
 它的每一筆交易中附上了合法性證明，
-使得節點不需要進入資料儲存裝置查找過往賬本資訊，
+使得節點不需要進入資料儲存裝置查詢過往賬本資訊，
 只要驗證交易內附的證明即可，
 從而使節點所需儲存的資訊量大幅減少，
 然而，要付出額外的網路流量與驗證時間。
@@ -22,7 +22,7 @@
 並且進行實驗比較了快取命中與快取失效的代價，
 模擬現今以太坊的區塊性質，
 當快取數十個區塊大小的賬戶資訊量時，
-快取命中所需的查找時間仍數倍低於梅克爾 Patricia 證明驗證的時間。
+快取命中所需的查詢時間仍數倍低於梅克爾 Patricia 證明驗證的時間。
 
 
 \bigbreak
@@ -35,14 +35,14 @@
 Cryptocurrency based on blockchain is a peer to peer trading
 system. In this decentralized system,
 each node maintains a complete ledger which
-records entire transaction history of all accounts.
-Years after years, requirement to single node will
+records the entire transaction history of all accounts.
+Years after years, the requirement to a single node will
 get higher and higher. Dealing with the issue, stateless
 blockchain is a promising approach. To be more specific,
 in this system, each transaction is attached with proof
 of validity. With this approach, there is no need for a node
 to access the data storage device to search past information
-of the ledger. Instead, node only verifies the proof attached
+of the ledger. Instead, a node only verifies the proof attached
 to each transaction. Therefore, it will significantly
 reduce the space of data storage for each node.
 But it will cause additional network traffic and
@@ -57,8 +57,8 @@ If we cache account information, we can eliminate some
 proof in transactions and then reduce network traffic
 and verification time.
 Second,
-there are so many cache replacement polcies.
-For LRU polices, we designed two composite data
+there are so many ceche replacement polcies.
+For LRU policies, we designed two composite data
 structures which based on red-black tree and value-independent order tree.
 And conduct some experiments to compare the cost of a
 cache hit with the penalty of a cache miss.
