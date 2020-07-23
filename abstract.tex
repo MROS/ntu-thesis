@@ -10,10 +10,10 @@
 從而使節點所需儲存的資訊量大幅減少，
 然而，要付出額外的網路流量與驗證時間。
 
-在本論文中，我們將在基於賬號的區塊鏈上討論以下兩點：
+在本論文中，我們將在基於賬戶的區塊鏈上討論以下兩點：
 第一，
 一筆交易的合法性很可能由最近出現過的其他交易的合法性推知，
-只要快取賬號的訊息，
+只要快取賬戶的訊息，
 就可以省略部分交易的證明，
 以此來減少網路流量與驗證時間。
 第二，
@@ -57,7 +57,7 @@ If we cache account information, we can eliminate some
 proof in transactions and then reduce network traffic
 and verification time.
 Second,
-there are so many ceche replacement polcies.
+there are so many cache replacement policies.
 For LRU policies, we designed two composite data
 structures which based on red-black tree and value-independent order tree.
 And conduct some experiments to compare the cost of a
