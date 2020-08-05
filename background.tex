@@ -176,5 +176,43 @@ Utreexo~\cite{dryja2019utreexo} 應用梅克爾樹構成的森林設計了一種
 
 在這種情況下，若要刪除舊樹，
 僅需從舊樹的根開始向下遞迴，
-遇到引用計數大於 1 的節點則停止，
+遇到引用計數
+\footnote{一個節點被多少個指標指到，
+該節點的引用計數就是多少，節點剛創造時引用計數為 1 ，
+只有有指標指向該節點，該節點的引用計數加 1，
+若指向該節點的指標被刪除或改指它處，引用計數減 1 。
+}
+大於 1 的節點，將其引用計數減 1 後則停止遞迴，
 遇到引用計數等於 1 的節點則刪除之並繼續向下遞迴。
+
+用虛擬碼描述這個過程：
+
+假設一個節點的結構是
+
+\begin{algorithm}[H]
+\MyStruct{Node}{
+  Node* left, right\;
+  int reference\_count\;
+}
+\end{algorithm}
+
+刪除的虛擬碼如下
+
+\begin{lstlisting}
+void remove(Node *node) {
+  if (node == null) { return; }
+  if (node->reference\_count == 1) {
+    remove(node->left);
+    remove(node->right);
+  } else {
+    node->reference\_count--;
+  }
+}
+\end{lstlisting}
+
+用高階程式語言撰寫刪除舊樹的算法實際上是很容易的，
+C++ 支援引用計數指標（shared\_ptr），
+只要釋放舊樹的根，
+解構子就會自動遞迴完成整棵舊樹的刪除；
+在支援垃圾回收（Garbage Collection）的語言如 Java ，
+只要丟棄舊樹的根，運行時（runtime）的垃圾回收器就會清除整棵舊樹。
