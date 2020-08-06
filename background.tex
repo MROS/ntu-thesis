@@ -204,6 +204,7 @@ void remove(Node *node) {
   if (node->reference\_count == 1) {
     remove(node->left);
     remove(node->right);
+    delete(node);
   } else {
     node->reference\_count--;
   }
