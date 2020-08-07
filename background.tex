@@ -191,7 +191,8 @@ Utreexo~\cite{dryja2019utreexo} 應用梅克爾樹構成的森林設計了一種
 
 \begin{algorithm}[H]
 \MyStruct{Node}{
-  Node* left, right\;
+  Node *left\;
+  Node *right\;
   int reference\_count\;
 }
 \end{algorithm}
@@ -201,12 +202,12 @@ Utreexo~\cite{dryja2019utreexo} 應用梅克爾樹構成的森林設計了一種
 \begin{lstlisting}
 void remove(Node *node) {
   if (node == null) { return; }
-  if (node->reference\_count == 1) {
+  if (node->reference_count == 1) {
     remove(node->left);
     remove(node->right);
     delete(node);
   } else {
-    node->reference\_count--;
+    node->reference_count--;
   }
 }
 \end{lstlisting}
