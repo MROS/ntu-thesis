@@ -33,11 +33,14 @@ void shiftdown(Node *node) {
     if (node->right != NULL && node->right->timestamp < small_child->timestamp) {
         small_child = node->right;
     }
-    // 交換父子節點
-    swap(node->key, small_child->key);
-    swap(node->timestamp, small_child->timestamp);
-    // 向下遞迴
-    shiftdown(small_child);
+
+    // 若子節點時間戳小於父節點，交換父子節點
+    if (small_child->timestamp < node->timestamp) {
+        swap(node->key, small_child->key);
+        swap(node->timestamp, small_child->timestamp);
+        // 向下遞迴
+        shiftdown(small_child);
+    }
 }
 ```
 
@@ -92,6 +95,8 @@ void maintain_root() {
 }
 ```
 
+`maintain_root` 會更新堆積的根的時間戳，並將根下移，若下移後堆積的新根的時間戳依然與雜湊表中的時間戳不同，重複此過程。
+
 #### LRU put
 
 若快取沒有命中，我們得丟棄最舊賬戶，並加入新賬戶。具體操作會將時間戳最小的節點，亦即堆積的根（由於條件二，堆積的根總是最舊的）改爲欲置入的新賬戶，並執行 maintain\_root 來維護堆積規則。
@@ -119,5 +124,40 @@ void lru_put(Key address, Value value) {
 }
 ```
 
-### 時空間複雜度分析
 ### 如何填滿快取
+
+無論快取是否已經填滿， `get` 操作的行爲都相同，但 `put` 時若快取失效，必須往堆積中加入新節點。因爲時間戳只增不減，將新節點塞入堆積的尾部後，新堆積仍會符合最小堆積的規則。
+
+至於要如何找到堆積的尾部，我們可以維護一個 `count` 變數來記錄當前的堆積節點數量，便可以透過讀取 `count` 的二進位表示式來從堆積的根走到尾部，虛擬碼如下：
+
+``` cpp
+Node *get_tail(int count) {
+    // high_bit 取得一個數字的二進位表示式中最左側的 1 的位置
+    // 例如 high_bit(0b1011) = 4, high_bit(0b0010) = 2
+    int h = high_bit(count) - 1; // h 爲 count 代表的節點的深度
+    Node *ret = heap.root;
+    while (h > 0) {
+        if (count & (1 << h)) {
+            ret = ret->left;
+        } else {
+            ret = ret->right;
+        }
+        h--;
+    }
+    return ret;
+}
+```
+
+### 時空間複雜度分析
+
+假設快取大小爲 `n`。我們分析幾個重要函式的時間複雜度。
+
+`shiftdown` 函式會由根遞迴向下執行，至多執行至葉子，時間複雜度 `O(log n)`，採用路徑複製來持久化時，由於修改到的節點恰巧組成一條從根到葉子的路徑，直接複製該路徑即可，耗用空間複雜度 `O(log n)` 。
+
+在 `n` 固定的情況下，設一次 `shiftdown` 所耗費的時間至多爲 `S` 。
+
+`maintain_root` 在最壞情況下需要將所有堆積中的時間戳都更新，此時會執行 `n` 次 `shiftdown` ，時空間複雜度爲 O(n log n) 。
+
+但我們觀察到，`maintain_root` 執行的 `shiftdown` 次數不超過堆積中時間戳與雜湊表中時間戳相異的數量，而每一次 LRU 的 `get`, `put` 頂多只會使堆積中時間戳與雜湊表中時間戳相異的數量增加 1 ，總的來說，執行 `shiftdown` 的次數會少於等於執行 LRU `get`, `put` 的次數，因此我們若將 `maintain_root` 的成本攤銷到每一次的 `get`, `put` 操作，一次 `get`, `put` 將分攤不到一次 `shiftdown`。
+
+攤銷掉 `maintain_root` 的開銷之後，每一次 `get`, `put` 操作增加了 `O(log n)` 的時空間開銷，再加上 `get`, `put` 需要查找／插入雜湊表所消耗的 `O(log n)` 的時空間開銷，`get`, `put` 的時空間複雜度仍爲 `O(log n)`。
