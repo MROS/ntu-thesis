@@ -29,6 +29,7 @@
 \setCJKmainfont[AutoFakeBold=true,AutoFakeSlant=true]{BiauKai}
 \renewcommand\figurename{圖}
 %\setCJKmainfont[BoldFont={粗楷體},ItalicFont={斜楷體}]{標楷體}
+\renewcommand\bibname{參考文獻}
 
 \ifdefined\firstpage
 
@@ -101,8 +102,6 @@
 %\input{application}
 \input{conclusion}
 
-\appendix
-
 \backmatter
 
 \addcontentsline{toc}{chapter}{\bibname}
@@ -110,5 +109,8 @@
 
 % Your bibliography goes here
 \bibliography{thesis}
+
+\appendix
+\chapter*{附錄}
 
 \end{document}
