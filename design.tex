@@ -223,7 +223,7 @@ put(key, value) 時，若 LRU 空間未滿，直接插入一筆鍵值對，
 
 以下，先討論了如何用紅黑樹\cite{guibas1978dichromatic}（平衡搜尋樹）來完成上述任務，
 再介紹我們設計的值無關順序樹（value-independent order tree）資料結構，
-最後，討論了基於堆積（heap）的設計。
+最後，討論了基於堆積\cite{cormen2009introduction}（heap）的設計。
 這三者都以使用路徑複製的不可變樹實作，因此可以很容易地刪除老舊版本。
 
 \subsection{雜湊 + 紅黑樹}
@@ -411,7 +411,7 @@ get, put 的時空間複雜度依然是 $O(\log n)$ 。
 況且，實作中不可能會創建容量超過 CPU 定址空間大小的值無關順序樹，
 序號必定能用 64bit 的整數存下。
 
-\subsection{以雜湊 + 最小堆積實作持久化 LRU}
+\subsection{雜湊 + 最小堆積}
 
 我們也可以巧妙地用雜湊搭配最小堆積（min heap）來實作持久化 LRU 。
 
