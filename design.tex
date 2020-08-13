@@ -108,7 +108,7 @@
 \caption{區塊 7a 為粉紅色區塊中的所有交易資訊}
 \end{figure}
 
-可以用一個鍵值對(key value pairs)（其底層可為雜湊表(hash table)、平衡搜尋樹(balenced search tree)、跳躍鏈接串列(skip list)......等等）來表示快取，
+可以用一個鍵值對(key value pairs)（其底層可為雜湊表(hash table)、平衡搜尋樹(balenced search tree)、跳躍鏈接串列\cite{lists1990probabilistic}(skiplist)......等等）來表示快取，
 若考慮每次重算的情境，例如在圖 3.4 中，要在 7a 區塊後接上一個 8a 區塊，
 則我們加入 8a 區塊中的交易資訊，並丟掉只在 6a 中出現但沒有在其餘區塊中出現的交易資訊。
 
