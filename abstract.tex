@@ -18,8 +18,9 @@
 以此來減少網路流量與驗證時間。
 第二，
 快取替換有多種策略，針對 LRU 策略，
-設計了基於不可變紅黑樹、不可變值無關順序樹、不可變堆積的三種資料結構，
-並且進行實驗比較了快取命中與快取失效的代價，
+我們設計了基於不可變紅黑樹、不可變值無關順序樹、不可變堆積的三種資料結構，
+透過共享資料，它們的時空間複雜度都控制在合理的範圍。
+我們也進行實驗比較了快取命中與快取失效的代價，
 模擬現今以太坊的區塊性質，
 當快取數十個區塊大小的賬戶資訊量時，
 快取命中所需的查詢時間仍數倍低於梅克爾 Patricia 證明驗證的時間。
@@ -58,14 +59,15 @@ proof in transactions and then reduce network traffic
 and verification time.
 Second,
 there are so many cache replacement policies.
-For LRU policies, we designed two composite data
-structures which based on red-black tree, value-independent order tree and heap.
-And conduct some experiments to compare the cost of a
+For LRU policies, we designed three composite data
+structures based on red-black tree, value-independent order tree, and heap.
+By sharing data, these data structures have feasible space complexity and time complexity.
+In our experiments, we compared the cost of a
 cache hit with the penalty of a cache miss.
-Simulating today's Ethereum's block property,
-when cache size can contain several tens of blocks' information,
-the cache searching time is significantly lower than
-the time to verify Merkle Patricia proofs.
+Simulating Ethereum's block property nowadays,
+if cache size is able to contain tens of blocks' information,
+the cache searching time will be significantly lower than
+the time of verifying Merkle Patricia proofs.
 
 \bigbreak
 \noindent
